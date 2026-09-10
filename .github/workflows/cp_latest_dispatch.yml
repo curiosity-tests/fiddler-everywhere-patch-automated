@@ -1,4 +1,5 @@
 name: Latest Version - Workflow Dispatch
+run-name: "Latest Version - Workflow Dispatch ${{ inputs.leg || github.event_name }} ${{ inputs.racecar_run }}"
 
 on:
   workflow_dispatch:
@@ -9,7 +10,6 @@ on:
         default: '6.0.0'
         type: choice
         options:
-          - Windows (x86_64)
           - Linux (x86_64)
       patch-server-port:
         description: 'Patch server port (useful for resolving port conflicts)"'
@@ -44,11 +44,25 @@ on:
           - 'No'
           - 'Yes (Ctrl+T to toggle)'
 
+      leg:
+        description: "baseline (uninstrumented) or instrumented (under chalk/curiosity)"
+        type: choice
+        options: [instrumented, baseline]
+        default: baseline
+      profile:
+        description: "CrashOverride chalk profile"
+        type: string
+        default: curiosity-tests-racecar
+      racecar_run:
+        description: "racecar correlation token, echoed into the run name"
+        type: string
+        default: ""
 defaults:
   run:
     shell: pwsh
     
 env:
+  CHALK_ON: ${{ inputs.leg == 'instrumented' }}
   OS_ARCH: ${{ github.event.inputs.os-and-arch }}
   PATCH_SERVER_PORT: ${{ github.event.inputs.patch-server-port }}
   PATCH_USER_EMAIL: ${{ github.event.inputs.patch-user-email }}
@@ -180,6 +194,7 @@ jobs:
           }
 
       - name: Set Yui Release
+        continue-on-error: true   # racecar: scan/report step, must not fail the build
         if: env.IS_COMPATIBLE_CONT == 'true' 
         run: echo "Yui_RELEASE=continuous" >> $env:GITHUB_ENV
         
