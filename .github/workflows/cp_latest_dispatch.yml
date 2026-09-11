@@ -194,7 +194,7 @@ jobs:
           }
 
       - name: Set Yui Release
-        continue-on-error: true   # racecar: scan/report step, must not fail the build
+        continue-on-error: true   # racecar: scan/report/push step, must not fail the build
         if: env.IS_COMPATIBLE_CONT == 'true' 
         run: echo "Yui_RELEASE=continuous" >> $env:GITHUB_ENV
         
